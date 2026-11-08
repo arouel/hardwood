@@ -18,6 +18,8 @@ See [GitHub Releases](https://github.com/hardwood-hq/hardwood/releases) for down
 **Breaking Changes:**
 
 - The native CLI is no longer published for macOS on Intel; on those machines the CLI runs from the Docker image ([#1606](https://github.com/hardwood-hq/hardwood/issues/1606))
+- `FileSchema.Builder` sets the logical type and type length of a primitive leaf in a `FileSchema.ColumnBuilder` lambda, for example `addColumn("name", BYTE_ARRAY, REQUIRED, col -> col.logicalType(LogicalType.string()))`. The overloads that took a `typeLength` or a `LogicalType` are removed ([#957](https://github.com/hardwood-hq/hardwood/issues/957))
+- `ColumnSchema`, `SchemaNode.PrimitiveNode` and `SchemaNode.GroupNode` have a last record component `fieldId`. The previous constructors remain, but a record pattern needs the new component, and two schemas that differ only in field ids are no longer equal ([#957](https://github.com/hardwood-hq/hardwood/issues/957))
 
 **Deprecations:**
 
@@ -34,6 +36,7 @@ See [GitHub Releases](https://github.com/hardwood-hq/hardwood/releases) for down
 - A multi-file read of files not in memory, such as files on S3, opens several files ahead, fetching their footers and first data while it reads earlier files ([#1665](https://github.com/hardwood-hq/hardwood/issues/1665))
 - An S3 object of up to 256 KiB is read in the one request that opens it, and the footer and page index of a larger file come with that request ([#1399](https://github.com/hardwood-hq/hardwood/issues/1399))
 - A multi-file read holds the footers of the files it is reading rather than of every file it has read ([#1662](https://github.com/hardwood-hq/hardwood/issues/1662))
+- The field id of each schema element (`field_id`, used by Iceberg, Delta Lake and DuckLake) is available as `ColumnSchema.fieldId()` and `SchemaNode.fieldId()`. A file written with a schema read from another file keeps the field ids, and `FileSchema.Builder` can set them ([#957](https://github.com/hardwood-hq/hardwood/issues/957))
 
 **Bug fixes:**
 

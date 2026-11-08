@@ -7668,3 +7668,35 @@ pq.write_table(
 )
 print("\nGenerated empty_row_group.parquet:")
 print("  - one required INT64 column 'id', one row group of 0 rows")
+
+# ===== Field ids on every field =====
+# PyArrow writes a field's `PARQUET:field_id` metadata as the schema element's field_id. Every
+# user-declared field carries one: the primitive columns, the struct and its children, the list
+# and its element, the map and its key and value. The root and the synthetic `list` and
+# `key_value` groups carry none.
+def _with_id(name, type_, field_id, nullable=True):
+    return pa.field(name, type_, nullable, metadata={b'PARQUET:field_id': str(field_id).encode()})
+
+_field_ids_schema = pa.schema([
+    _with_id('id', pa.int64(), 1, nullable=False),
+    _with_id('name', pa.string(), 2),
+    _with_id('location', pa.struct([
+        _with_id('lat', pa.float64(), 4, nullable=False),
+        _with_id('lon', pa.float64(), 5, nullable=False),
+    ]), 3),
+    _with_id('tags', pa.list_(_with_id('element', pa.string(), 7, nullable=False)), 6),
+    _with_id('props', pa.map_(_with_id('key', pa.string(), 9, nullable=False),
+                              _with_id('value', pa.int64(), 10)), 8),
+])
+pq.write_table(
+    pa.table({
+        'id': [1, 2],
+        'name': ['a', None],
+        'location': [{'lat': 1.0, 'lon': 2.0}, None],
+        'tags': [['x', 'y'], None],
+        'props': [[('k', 1)], None],
+    }, schema=_field_ids_schema),
+    'core/src/test/resources/field_ids_test.parquet',
+)
+print("\nGenerated field_ids_test.parquet:")
+print("  - field ids 1-10 on every declared field; none on the root, list and key_value groups")

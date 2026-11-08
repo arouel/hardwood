@@ -56,8 +56,10 @@ class WriterSizeStatisticsTest {
     private static final FileSchema NESTED = FileSchema.builder("schema")
             .addColumn("id", PhysicalType.INT32, RepetitionType.REQUIRED)
             .struct("address", RepetitionType.OPTIONAL, address -> address
-                    .addColumn("city", PhysicalType.BYTE_ARRAY, RepetitionType.REQUIRED, LogicalType.string())
-                    .addColumn("zip", PhysicalType.BYTE_ARRAY, RepetitionType.OPTIONAL, LogicalType.string()))
+                    .addColumn("city", PhysicalType.BYTE_ARRAY, RepetitionType.REQUIRED,
+                            col -> col.logicalType(LogicalType.string()))
+                    .addColumn("zip", PhysicalType.BYTE_ARRAY, RepetitionType.OPTIONAL,
+                            col -> col.logicalType(LogicalType.string())))
             .list("scores", RepetitionType.OPTIONAL,
                     element -> element.primitive(PhysicalType.INT32, RepetitionType.OPTIONAL))
             .build();
@@ -127,7 +129,7 @@ class WriterSizeStatisticsTest {
     void countsByteArrayPageBytesUnderEveryEncoding(ColumnEncoding encoding) throws Exception {
         FileSchema schema = FileSchema.builder("schema")
                 .addColumn("s", PhysicalType.BYTE_ARRAY, RepetitionType.OPTIONAL)
-                .addColumn("f", PhysicalType.FIXED_LEN_BYTE_ARRAY, RepetitionType.REQUIRED, 3)
+                .addColumn("f", PhysicalType.FIXED_LEN_BYTE_ARRAY, RepetitionType.REQUIRED, col -> col.typeLength(3))
                 .build();
         int rows = 1_000;
         byte[][] strings = new byte[rows][];
@@ -160,7 +162,8 @@ class WriterSizeStatisticsTest {
         FileSchema schema = FileSchema.builder("schema")
                 .addColumn("id", PhysicalType.INT32, RepetitionType.REQUIRED)
                 .struct("address", RepetitionType.OPTIONAL, address -> address
-                        .addColumn("zip", PhysicalType.BYTE_ARRAY, RepetitionType.OPTIONAL, LogicalType.string()))
+                        .addColumn("zip", PhysicalType.BYTE_ARRAY, RepetitionType.OPTIONAL,
+                                col -> col.logicalType(LogicalType.string())))
                 .build();
         InMemoryOutputFile out = OutputFile.inMemory();
         try (ParquetFileWriter writer = ParquetFileWriter.create(out, schema)) {

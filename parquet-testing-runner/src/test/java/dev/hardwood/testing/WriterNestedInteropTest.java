@@ -258,7 +258,7 @@ class WriterNestedInteropTest {
     void requiredMapWithStringKeys(@TempDir Path dir) throws IOException {
         FileSchema schema = FileSchema.builder("nested")
                 .map("props", RepetitionType.REQUIRED, PhysicalType.BYTE_ARRAY,
-                        LogicalType.string(),
+                        key -> key.logicalType(LogicalType.string()),
                         value -> value.primitive(PhysicalType.INT64, RepetitionType.REQUIRED))
                 .build();
 
@@ -446,7 +446,8 @@ class WriterNestedInteropTest {
                         .addColumn("born", PhysicalType.INT32, RepetitionType.REQUIRED)
                         // A REQUIRED fixed-width leaf: the absent record gives it a slot the row
                         // layer fills with a placeholder, which must not reach the file.
-                        .addColumn("key", PhysicalType.FIXED_LEN_BYTE_ARRAY, RepetitionType.REQUIRED, 4))
+                        .addColumn("key", PhysicalType.FIXED_LEN_BYTE_ARRAY, RepetitionType.REQUIRED,
+                                col -> col.typeLength(4)))
                 .build();
         byte[] firstKey = { 1, 2, 3, 4 };
         byte[] lastKey = { 5, 6, 7, 8 };
@@ -528,7 +529,8 @@ class WriterNestedInteropTest {
     @Test
     void rowWrittenMaps(@TempDir Path dir) throws IOException {
         FileSchema schema = FileSchema.builder("nested")
-                .map("props", RepetitionType.OPTIONAL, PhysicalType.BYTE_ARRAY, LogicalType.string(),
+                .map("props", RepetitionType.OPTIONAL, PhysicalType.BYTE_ARRAY,
+                        key -> key.logicalType(LogicalType.string()),
                         value -> value.primitive(PhysicalType.INT64, RepetitionType.OPTIONAL))
                 .build();
 
